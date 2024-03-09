@@ -4,31 +4,59 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DiscordStatusManager = void 0;
-const discord_rich_presence_1 = __importDefault(require("discord-rich-presence"));
+const easy_presence_1 = require("easy-presence");
 const config_js_1 = __importDefault(require("../../config.js"));
-const discord_client = (0, discord_rich_presence_1.default)(config_js_1.default.discord_app_id);
+const presence = new easy_presence_1.EasyPresence(config_js_1.default.discord_app_id);
+// const discord_client = client(config.discord_app_id);
 class DiscordStatusManager {
     constructor() {
-        console.log("[CLIENT SIDE] STATUS DO DISCORD CARREGADO");
-        this.initDate = Date.now();
+        presence.on('conneting', () => console.log('Conectando-se ao Discord.'));
+        presence.on('disconnected', () => console.log('Desconectado do Discord.'));
+        presence.on('activityUpdate', () => console.log('Status do Discord atualizado.'));
+        presence.on('connected', () => console.log('Conectado ao Discord.'));
+        console.log("[SERVER SIDE] STATUS DO DISCORD CARREGADO");
+        this.initDate = new Date();
     }
     setStatusPage(page) {
-        discord_client.updatePresence({
-            details: `Ainda não iniciou o Minecraft`,
-            state: page,
-            startTimestamp: this.initDate,
-            largeImageKey: "brlauncher",
+        presence.setActivity({
+            details: 'Ainda não iniciou o Minecraft',
             instance: false,
+            state: page,
+            assets: {
+                large_image: 'minelogo',
+                large_text: 'BRLauncher'
+            },
+            timestamps: {
+                start: this.initDate,
+            },
+            buttons: [
+                {
+                    label: 'Download Launcher',
+                    url: 'https://github.com/VOTRON157/BRLauncher'
+                }
+            ]
         });
     }
     setPlaying(version) {
-        console.log(version);
-        discord_client.updatePresence({
+        presence.setActivity({
             details: `Minecraft ${version.split(" ")[1]}`,
-            state: `Jogando Minecraft ${version.split(" ")[0].replace('fabric', 'Fabric (Modded)').replace('forge', 'Forge (Modded)').replace('vanilla', "Vanilla")}`,
-            startTimestamp: this.initDate,
-            largeImageKey: "brlauncher",
             instance: false,
+            state: `Jogando Minecraft ${version.split(" ")[0].replace('fabric', 'Fabric (Modded)').replace('forge', 'Forge (Modded)').replace('vanilla', "Vanilla")}`,
+            assets: {
+                small_image: version.split(" ")[0],
+                small_text: version.split(" ")[1],
+                large_image: 'minelogo',
+                large_text: 'BRLauncher'
+            },
+            timestamps: {
+                start: this.initDate,
+            },
+            buttons: [
+                {
+                    label: 'Download Launcher',
+                    url: 'https://github.com/VOTRON157/BRLauncher'
+                }
+            ]
         });
     }
 }

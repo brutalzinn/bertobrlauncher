@@ -23,8 +23,9 @@
     "decompress": "^4.2.1",
     "discord-rich-presence": "^0.0.8",
     "dotenv": "^16.3.1",
+    "easy-presence": "^1.2.0-oops1",
     "material-icons": "^1.13.8",
-    "minecraft-java-core": "^3.7.2",
+    "minecraft-java-core": "^3.5.8",
     "semver": "^7.5.4",
     "shelljs": "^0.8.5",
     "unzipper": "^0.10.14"

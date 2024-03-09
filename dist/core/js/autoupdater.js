@@ -30,8 +30,8 @@ class AutoUpdater extends events_1.default {
         console.log(version);
         fetch("https://raw.githubusercontent.com/VOTRON157/BRLauncher/main/package.json", {
             headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache', // Instrui o servidor a não usar o cache
+                'Pragma': 'no-cache', // Outra instrução para não usar o cache (para compatibilidade com navegadores mais antigos)    
                 'Expires': '0',
             },
             cache: 'no-cache'
@@ -50,8 +50,8 @@ class AutoUpdater extends events_1.default {
             const newVersion = "https://github.com/VOTRON157/BRLauncher/archive/refs/heads/main.zip";
             const data = yield fetch(newVersion, {
                 headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache',
+                    'Cache-Control': 'no-cache', // Instrui o servidor a não usar o cache
+                    'Pragma': 'no-cache', // Outra instrução para não usar o cache (para compatibilidade com navegadores mais antigos)    
                     'Expires': '0',
                 },
                 cache: 'no-cache'
