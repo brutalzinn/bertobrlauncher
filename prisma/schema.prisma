@@ -31,3 +31,10 @@ model Launcher { // Configurações do launcher
   max Int
   javaPath String?
 }
+
+model Repository {
+  id Int @id @default(autoincrement())
+  name String
+  url String
+  path String
+}

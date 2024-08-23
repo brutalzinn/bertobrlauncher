@@ -13,15 +13,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Launcher = void 0;
-const minecraft_java_core_1 = require("minecraft-java-core");
+const { Mojang, Launch } = require('minecraft-java-core');
 const launcher_js_1 = __importDefault(require("../../db/launcher.js"));
 const account_js_1 = __importDefault(require("../../db/account.js"));
-class Launcher extends minecraft_java_core_1.Launch {
+class Launcher extends Launch {
     constructor() {
         super();
         console.log("[CLIENT SIDE] CLASSE LAUNCHER CARREGADA");
     }
-    init(version, type) {
+    init(gameData) {
         return __awaiter(this, void 0, void 0, function* () {
             const accounts = yield account_js_1.default.accounts();
             if (!accounts.length) {
@@ -34,20 +34,25 @@ class Launcher extends minecraft_java_core_1.Launch {
                 return;
             const auth = yield account_js_1.default.getAtual();
             yield this.Launch({
-                authenticator: this.convert(auth),
+                authenticator: auth ? this.convert(auth) : null,
                 timeout: 10000,
                 path: settings.path,
-                version: version,
+                version: gameData.game_version,
                 detached: false,
                 downloadFileMultiple: 100,
                 loader: {
-                    type: type,
+                    type: gameData.loader,
                     build: "latest",
-                    enable: !(type == 'vanilla')
+                    enable: !(gameData.loader == 'vanilla')
                 },
+                url: gameData.files,
                 verify: false,
                 ignored: ['loader', 'options.txt'],
-                javaPath: settings.javaPath,
+                java: {
+                    path: null,
+                    version: null,
+                    type: 'jre',
+                },
                 screen: {
                     width: settings.width,
                     height: settings.height,
@@ -56,7 +61,6 @@ class Launcher extends minecraft_java_core_1.Launch {
                     min: `${settings.min}M`,
                     max: `${settings.max}M`
                 },
-                url: null,
                 JVM_ARGS: [],
                 GAME_ARGS: []
             });

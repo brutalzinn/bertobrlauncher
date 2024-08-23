@@ -8,12 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HomePage = void 0;
 const launcher_js_1 = require("./launcher.js");
+const launcher_js_2 = __importDefault(require("../../db/launcher.js"));
 const autoupdater_js_1 = require("./autoupdater.js");
-const electron_1 = require("electron");
 const base_js_1 = require("../base.js");
+const node_fs_1 = require("node:fs");
 class HomePage extends base_js_1.PageBase {
     constructor() {
         super({
@@ -27,19 +31,22 @@ class HomePage extends base_js_1.PageBase {
             this.initUpdater();
             const play = document.getElementById('play');
             play.addEventListener('click', () => {
-                this.startLauncher();
+                if (!this.selectedModpack)
+                    return this.notification("Selecione um modpack para jogar.");
+                this.startLauncher(this.selectedModpack);
                 play.innerHTML = '<span class="material-icons">play_disabled</span> Instalando...';
                 play.disabled = true;
             });
         });
     }
-    /* private async getInstalledVersions(){
-        const launcherSettings = await LauncherDB.config()
-        // if(!launcherSettings) return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.")
-        let versions = readdirSync(`${launcherSettings?.path}\\versions`)
-        console.log(versions)
-        
-    } */
+    getInstalledVersions() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const launcherSettings = yield launcher_js_2.default.config();
+            // if(!launcherSettings) return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.")
+            let versions = (0, node_fs_1.readdirSync)(`${launcherSettings === null || launcherSettings === void 0 ? void 0 : launcherSettings.path}\\versions`);
+            console.log(versions);
+        });
+    }
     getNeoForgeVersions() {
         return __awaiter(this, void 0, void 0, function* () {
             // not implemented
@@ -67,53 +74,80 @@ class HomePage extends base_js_1.PageBase {
         return __awaiter(this, void 0, void 0, function* () {
             let forge = yield (yield fetch("https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json")).json();
             return forge;
-            // https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json
         });
     }
-    returnOptionElement(type, version) {
-        const div = document.createElement('div');
-        div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150');
-        div.innerHTML = `<img src="../core/imgs/${type}.png" width="30">${type} ${version}`;
-        div.addEventListener('click', () => this.setDropdownItem(div.innerHTML.split('>')[1]));
-        return div;
-    }
-    setDropdownItem(item) {
-        const fake = document.getElementById('fake-select');
-        fake.innerHTML = `<img src="../core/imgs/${item.split(' ')[0]}.png" width="30">${item}`;
-        const input = document.getElementById('version');
-        input.value = item;
-    }
-    manageDropdown() {
+    fetchGameData() {
         return __awaiter(this, void 0, void 0, function* () {
-            const vanilla = yield this.getVanillaVersions();
-            const fabric = yield this.getFabricVersions();
-            const forge = yield this.getForgeVersions();
-            const quilt = yield this.getQuiltVersions();
-            // const installed = await this.getInstalledVersions()
-            const options = document.getElementById('options');
-            for (let version of vanilla) {
-                // const installedDiv = this.returnOptionElement('installed', version)
-                const forgeDiv = this.returnOptionElement('forge', version);
-                const fabricDiv = this.returnOptionElement('fabric', version);
-                const vanillaDiv = this.returnOptionElement('vanilla', version);
-                const quiltDiv = this.returnOptionElement('quilt', version);
-                options.appendChild(vanillaDiv);
-                if (fabric.includes(version)) {
-                    options.appendChild(fabricDiv);
+            const url = 'https://minecraft.robertinho.net/?action=list';
+            try {
+                const response = yield fetch(url);
+                if (!response.ok) {
+                    console.log(response.body);
                 }
-                if (Object.keys(forge).includes(version)) {
-                    options.appendChild(forgeDiv);
-                }
-                if (quilt.includes(version)) {
-                    options.appendChild(quiltDiv);
-                }
+                const data = yield response.json();
+                return data;
+            }
+            catch (error) {
+                console.error('Error fetching game data:', error);
+                return [];
             }
         });
     }
-    startLauncher() {
-        const [type, version] = document.getElementById('version').value.split(' ');
+    // private returnOptionElement(type: 'forge' | 'fabric' | 'vanilla' | 'quilt', version: string) {
+    //     const div = document.createElement('div')
+    //     div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150')
+    //     div.innerHTML = `<img src="../core/imgs/${type}.png" width="30">${type} ${version}`
+    //     div.addEventListener('click', () => this.setDropdownItem(div.innerHTML.split('>')[1]))
+    //     return div
+    // }
+    returnOptionElementCustomModpack(modpack) {
+        const div = document.createElement('div');
+        div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150');
+        div.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`;
+        div.addEventListener('click', () => {
+            const fake = document.getElementById('fake-select');
+            fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`;
+            this.selectedModpack = modpack;
+        });
+        return div;
+    }
+    manageDropdown() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // const vanilla = await this.getVanillaVersions()
+            // const fabric = await this.getFabricVersions()
+            // const forge = await this.getForgeVersions()
+            // const quilt = await this.getQuiltVersions()
+            // const installed = await this.getInstalledVersions()
+            let modpacks = yield this.fetchGameData();
+            const options = document.getElementById('options');
+            for (let modpack of modpacks) {
+                console.log(modpack);
+                const optionDiv = this.returnOptionElementCustomModpack(modpack);
+                options.appendChild(optionDiv);
+            }
+            // console.log(modpacks)
+            // for (let version of vanilla) {
+            // const installedDiv = this.returnOptionElement('installed', version)
+            // const forgeDiv = this.returnOptionElement('forge', version)
+            // const fabricDiv = this.returnOptionElement('fabric', version)
+            // const vanillaDiv = this.returnOptionElement('vanilla', version)
+            // const quiltDiv = this.returnOptionElement('quilt', version)
+            // options.appendChild(vanillaDiv)
+            // if (fabric.includes(version)) {
+            //     options.appendChild(fabricDiv)
+            // }
+            // if (Object.keys(forge).includes(version)) {
+            //     options.appendChild(forgeDiv)
+            // }
+            // if (quilt.includes(version)) {
+            //     options.appendChild(quiltDiv)
+            // }
+            // }
+        });
+    }
+    startLauncher(gameData) {
         const launcher = new launcher_js_1.Launcher();
-        launcher.init(version, type);
+        launcher.init(gameData);
         const barra = document.getElementById('barra');
         launcher.on("progress", (progress, size, element) => {
             const porcentagem = Math.round((progress / size) * 100);
@@ -134,7 +168,6 @@ class HomePage extends base_js_1.PageBase {
             barra.style.width = '100%';
             if (data.includes("Launching")) {
                 barra.innerHTML = '<span class="text-lime-700">Jogo rodando...</span>';
-                electron_1.ipcRenderer.invoke("playing", `${type} ${version}`);
             }
         });
         launcher.on('close', (code) => {
@@ -142,7 +175,6 @@ class HomePage extends base_js_1.PageBase {
             const play = document.getElementById('play');
             play.disabled = false;
             play.innerHTML = '<span class="material-icons">play_circle</span> Instalar e Jogar';
-            electron_1.ipcRenderer.invoke("stopPlaying");
         });
     }
     initUpdater() {

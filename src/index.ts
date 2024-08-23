@@ -23,6 +23,10 @@ async function createWindow() {
   win.removeMenu();
   // win.webContents.openDevTools()
   initIPCHandlers()
+
+  try {
+    require('electron-reloader')(module)
+  } catch (_) { }
 }
 
 app.whenReady().then(() => {
@@ -42,3 +46,4 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+

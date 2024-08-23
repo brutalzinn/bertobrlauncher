@@ -55,7 +55,7 @@ export interface ConfigPage {
 
 export interface AccountCreate {
     access_token: string,
-    client_token:string,
+    client_token: string,
     uuid: string,
     name: string,
     user_properties: {},
@@ -66,7 +66,16 @@ export interface AccountCreate {
 }
 
 export interface ForgeAPI {
-    
+
+}
+
+
+export interface GameData {
+    name: string;
+    game_version: string;
+    loader: 'forge' | 'fabric' | 'vanilla' | 'quilt'
+    loader_version: string;
+    files: string;
 }
 
 type QuiltAPIGAME = {
@@ -86,4 +95,4 @@ export type Events = {
     "unpacking": () => void
     "copy": () => void
     "finished": () => void;
-  };
+};

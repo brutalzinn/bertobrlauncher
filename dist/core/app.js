@@ -60,7 +60,6 @@ class App {
         active === null || active === void 0 ? void 0 : active.classList.remove('block');
         page.classList.add('block');
         page.classList.remove('hidden');
-        electron_1.ipcRenderer.invoke('changedPage', pageName.replace('home', 'Tela Inicial').replace('accounts', 'Configurando Contas').replace('config', 'Configurando o Launcher').replace('about', 'Lendo o About'));
     }
     sideBar() {
         return __awaiter(this, void 0, void 0, function* () {

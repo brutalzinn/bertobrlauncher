@@ -22,7 +22,7 @@ class App {
         this.removeLoad()
     }
 
-    private removeLoad(){
+    private removeLoad() {
         const loading = document.getElementById('loading') as HTMLDivElement
         loading.remove()
     }
@@ -39,7 +39,7 @@ class App {
             pagesDiv.appendChild(pageDiv)
             await page.init()
         }
-       
+
     }
     setPage(pageName: string) {
         const page = document.getElementById(pageName) as HTMLElement
@@ -48,7 +48,6 @@ class App {
         active?.classList.remove('block')
         page.classList.add('block')
         page.classList.remove('hidden')
-        ipcRenderer.invoke('changedPage', pageName.replace('home', 'Tela Inicial').replace('accounts', 'Configurando Contas').replace('config', 'Configurando o Launcher').replace('about', 'Lendo o About'))
     }
 
     async sideBar() {
@@ -63,7 +62,7 @@ class App {
         })
 
         const acc = await Account.getAtual()
-        if(!acc) sideUsername.innerHTML = 'Não logado'
+        if (!acc) sideUsername.innerHTML = 'Não logado'
         else sideUsername.innerHTML = acc.name
 
     }
@@ -83,7 +82,7 @@ class App {
         const accounts = document.getElementById('accounts-btn') as HTMLButtonElement
         const close = document.getElementById("close") as HTMLElement;
 
-       
+
         minimize.addEventListener("click", () => ipcRenderer.invoke("minimize"));
         close.addEventListener("click", () => window.close());
         maxmize.addEventListener("click", () => ipcRenderer.invoke("maxmize"));

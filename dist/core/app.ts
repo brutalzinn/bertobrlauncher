@@ -48,7 +48,6 @@ class App {
         active?.classList.remove('block')
         page.classList.add('block')
         page.classList.remove('hidden')
-        ipcRenderer.invoke('changedPage', pageName.replace('home', 'Tela Inicial').replace('accounts', 'Configurando Contas').replace('config', 'Configurando o Launcher').replace('about', 'Lendo o About'))
     }
 
     async sideBar() {

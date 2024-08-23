@@ -35,6 +35,10 @@ function createWindow() {
         win.removeMenu();
         // win.webContents.openDevTools()
         (0, ipcHandlers_js_1.initIPCHandlers)();
+        try {
+            require('electron-reloader')(module);
+        }
+        catch (_) { }
     });
 }
 electron_1.app.whenReady().then(() => {

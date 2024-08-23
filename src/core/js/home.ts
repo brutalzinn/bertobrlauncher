@@ -1,13 +1,17 @@
 import axios from "axios"
 import { Launcher } from "./launcher.js"
 import LauncherDB from "../../db/launcher.js";
-import { FabricAPI, MineAPI, QuiltAPI } from "../../interfaces/launcher.js"
+import { FabricAPI, MineAPI, QuiltAPI, GameData } from "../../interfaces/launcher.js"
 import { AutoUpdater } from "./autoupdater.js"
 import { ipcRenderer } from "electron"
 import { PageBase } from "../base.js"
-import { readdirSync } from "node:fs"
+import { Storage } from "./storage"
+import { readdirSync, readFileSync, existsSync } from "node:fs"
+
+
 
 class HomePage extends PageBase {
+    private selectedModpack?: GameData
     constructor() {
         super({
             pageName: 'home'
@@ -20,25 +24,26 @@ class HomePage extends PageBase {
         this.initUpdater()
         const play = document.getElementById('play') as HTMLButtonElement
         play.addEventListener('click', () => {
-            this.startLauncher()
+            if (!this.selectedModpack) return this.notification("Selecione um modpack para jogar.")
+            this.startLauncher(this.selectedModpack)
             play.innerHTML = '<span class="material-icons">play_disabled</span> Instalando...'
             play.disabled = true
         })
     }
 
-    /* private async getInstalledVersions(){
+    private async getInstalledVersions() {
         const launcherSettings = await LauncherDB.config()
         // if(!launcherSettings) return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.")
         let versions = readdirSync(`${launcherSettings?.path}\\versions`)
         console.log(versions)
-        
-    } */
 
-    private async getNeoForgeVersions(){
+    }
+
+    private async getNeoForgeVersions() {
         // not implemented
     }
 
-    private async getQuiltVersions(){
+    private async getQuiltVersions() {
         let quilt = (await (await fetch("https://meta.quiltmc.org/v3/versions")).json() as QuiltAPI).game.filter(v => v.stable).map(v => v.version)
         return quilt
     }
@@ -56,59 +61,90 @@ class HomePage extends PageBase {
     private async getForgeVersions() {
         let forge = (await (await fetch("https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json")).json() as Object)
         return forge
-        // https://files.minecraftforge.net/net/minecraftforge/forge/maven-metadata.json
     }
 
-    private returnOptionElement(type: 'forge' | 'fabric' | 'vanilla' | 'quilt', version: string) {
-        const div = document.createElement('div')
-        div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150')
-        div.innerHTML = `<img src="../core/imgs/${type}.png" width="30">${type} ${version}`
-        div.addEventListener('click', () => this.setDropdownItem(div.innerHTML.split('>')[1]))
-        return div
-    }
-
-    private setDropdownItem(item: string) {
-        const fake = document.getElementById('fake-select') as HTMLElement
-        fake.innerHTML = `<img src="../core/imgs/${item.split(' ')[0]}.png" width="30">${item}`
-        const input = document.getElementById('version') as HTMLInputElement
-        input.value = item
-    }
-
-    async manageDropdown() {
-        const vanilla = await this.getVanillaVersions()
-        const fabric = await this.getFabricVersions()
-        const forge = await this.getForgeVersions()
-        const quilt = await this.getQuiltVersions()
-        // const installed = await this.getInstalledVersions()
-
-        const options = document.getElementById('options') as HTMLElement
-
-        for (let version of vanilla) {
-            // const installedDiv = this.returnOptionElement('installed', version)
-            const forgeDiv = this.returnOptionElement('forge', version)
-            const fabricDiv = this.returnOptionElement('fabric', version)
-            const vanillaDiv = this.returnOptionElement('vanilla', version)
-            const quiltDiv = this.returnOptionElement('quilt', version)
-
-            options.appendChild(vanillaDiv)
-
-            if (fabric.includes(version)) {
-                options.appendChild(fabricDiv)
+    private async fetchGameData(): Promise<GameData[]> {
+        const url = 'https://minecraft.robertinho.net/?action=list';
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.log(response.body)
             }
-            if (Object.keys(forge).includes(version)) {
-                options.appendChild(forgeDiv)
-            }
-            if(quilt.includes(version)) {
-                options.appendChild(quiltDiv)
-            }
+            const data: GameData[] = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching game data:', error);
+            return [];
         }
     }
 
-    startLauncher() {
-        const [type, version] = (document.getElementById('version') as HTMLInputElement).value.split(' ')
+
+    // private returnOptionElement(type: 'forge' | 'fabric' | 'vanilla' | 'quilt', version: string) {
+    //     const div = document.createElement('div')
+    //     div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150')
+    //     div.innerHTML = `<img src="../core/imgs/${type}.png" width="30">${type} ${version}`
+    //     div.addEventListener('click', () => this.setDropdownItem(div.innerHTML.split('>')[1]))
+    //     return div
+    // }
+
+    private returnOptionElementCustomModpack(modpack: GameData) {
+        const div = document.createElement('div')
+        div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150')
+        div.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`
+        div.addEventListener('click', () => {
+            const fake = document.getElementById('fake-select') as HTMLElement
+            fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`
+            this.selectedModpack = modpack
+        })
+
+        return div
+    }
+
+
+
+
+    async manageDropdown() {
+        // const vanilla = await this.getVanillaVersions()
+        // const fabric = await this.getFabricVersions()
+        // const forge = await this.getForgeVersions()
+        // const quilt = await this.getQuiltVersions()
+        // const installed = await this.getInstalledVersions()
+
+        let modpacks = await this.fetchGameData()
+
+        const options = document.getElementById('options') as HTMLElement
+        for (let modpack of modpacks) {
+            console.log(modpack)
+            const optionDiv = this.returnOptionElementCustomModpack(modpack)
+            options.appendChild(optionDiv)
+        }
+
+        // console.log(modpacks)
+        // for (let version of vanilla) {
+        // const installedDiv = this.returnOptionElement('installed', version)
+        // const forgeDiv = this.returnOptionElement('forge', version)
+        // const fabricDiv = this.returnOptionElement('fabric', version)
+        // const vanillaDiv = this.returnOptionElement('vanilla', version)
+        // const quiltDiv = this.returnOptionElement('quilt', version)
+
+        // options.appendChild(vanillaDiv)
+
+        // if (fabric.includes(version)) {
+        //     options.appendChild(fabricDiv)
+        // }
+        // if (Object.keys(forge).includes(version)) {
+        //     options.appendChild(forgeDiv)
+        // }
+        // if (quilt.includes(version)) {
+        //     options.appendChild(quiltDiv)
+        // }
+        // }
+    }
+
+    startLauncher(gameData: GameData) {
         const launcher = new Launcher()
-        launcher.init(version, type)
-       
+        launcher.init(gameData)
+
 
         const barra = document.getElementById('barra') as HTMLElement
 
@@ -134,7 +170,6 @@ class HomePage extends PageBase {
             barra.style.width = '100%'
             if (data.includes("Launching")) {
                 barra.innerHTML = '<span class="text-lime-700">Jogo rodando...</span>'
-                ipcRenderer.invoke("playing", `${type} ${version}`)
             }
         })
 
@@ -143,12 +178,11 @@ class HomePage extends PageBase {
             const play = document.getElementById('play') as HTMLButtonElement
             play.disabled = false
             play.innerHTML = '<span class="material-icons">play_circle</span> Instalar e Jogar'
-            ipcRenderer.invoke("stopPlaying")
         })
     }
 
     initUpdater() {
-        
+
         const autoUpdater = new AutoUpdater()
 
         const updater = document.getElementById("updater") as HTMLDivElement
@@ -183,7 +217,7 @@ class HomePage extends PageBase {
 
             autoUpdater.on("finished", () => {
                 this.notification("O BRLauncher foi atualizado para a versão mais recente. Reabra o launcher para ver as novidades.")
-            }) 
+            })
 
             autoUpdater.on('error', (error) => {
                 console.log(error)

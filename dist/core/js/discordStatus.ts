@@ -1,4 +1,3 @@
-import client from "discord-rich-presence";
 import { EasyPresence as Presence } from "easy-presence";
 import config from "../../config.js";
 

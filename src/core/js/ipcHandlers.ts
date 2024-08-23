@@ -1,8 +1,6 @@
 import { ipcMain, BrowserWindow, dialog } from "electron";
-import { DiscordStatusManager } from "./discordStatus.js";
 
 
-const discord = new DiscordStatusManager()
 
 
 const initIPCHandlers = () => {
@@ -13,10 +11,6 @@ const initIPCHandlers = () => {
     ipcMain.handle("maxmize", (event) =>
         !BrowserWindow.getFocusedWindow()?.isMaximized() ? BrowserWindow.getFocusedWindow()?.maximize() : BrowserWindow.getFocusedWindow()?.unmaximize()
     );
-
-    ipcMain.handle("stopPlaying", () => discord.setStatusPage('Acabou de fechar o Minecraft'));
-    ipcMain.handle("changedPage", (event, page) => discord.setStatusPage(page));
-    ipcMain.handle("playing", (event, version) => discord.setPlaying(version));
     ipcMain.handle('fileExplorer', (event) => {
         const path = dialog.showOpenDialogSync({
             properties: ['openDirectory']

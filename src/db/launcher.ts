@@ -6,16 +6,16 @@ import shell from "shelljs";
 const javaPath = shell.exec("where java")
 
 class Launcher {
-    async update(path: string, min: number, max: number, width: number, height: number){
+    async update(path: string, min: number, max: number, width: number, height: number) {
         const newData = await prisma.launcher.update({
             where: {
                 id: 1
             },
             data: {
                 path,
-                min, 
-                max, 
-                width, 
+                min,
+                max,
+                width,
                 height
             }
         })
@@ -29,7 +29,7 @@ class Launcher {
                     id: 1
                 },
                 data: {
-                    path: getAppDataPath('.minecraft'),
+                    path: getAppDataPath('.bertobrlauncher'),
                     min: 1024,
                     max: Math.round(((os.totalmem() / (1024 ** 2))) / 2),
                     width: 1000,
@@ -40,7 +40,7 @@ class Launcher {
         } else {
             await prisma.launcher.create({
                 data: {
-                    path: getAppDataPath('.minecraft'),
+                    path: getAppDataPath('.bertobrlauncher'),
                     min: 1024,
                     max: Math.round(((os.totalmem() / (1024 ** 2))) / 2),
                     width: 1000,
