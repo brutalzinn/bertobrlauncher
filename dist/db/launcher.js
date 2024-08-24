@@ -43,7 +43,7 @@ class Launcher {
                         id: 1
                     },
                     data: {
-                        path: (0, appdata_path_1.default)('.boberto'),
+                        path: (0, appdata_path_1.default)('.bertobrlauncher'),
                         min: 1024,
                         max: Math.round(((os_1.default.totalmem() / (1024 ** 2))) / 2),
                         width: 1000,
@@ -55,7 +55,7 @@ class Launcher {
             else {
                 yield index_1.prisma.launcher.create({
                     data: {
-                        path: (0, appdata_path_1.default)('.boberto'),
+                        path: (0, appdata_path_1.default)('.bertobrlauncher'),
                         min: 1024,
                         max: Math.round(((os_1.default.totalmem() / (1024 ** 2))) / 2),
                         width: 1000,

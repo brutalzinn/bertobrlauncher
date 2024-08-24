@@ -18,21 +18,27 @@ const launcher_js_2 = __importDefault(require("../../db/launcher.js"));
 const autoupdater_js_1 = require("./autoupdater.js");
 const base_js_1 = require("../base.js");
 const node_fs_1 = require("node:fs");
+const account_js_1 = __importDefault(require("../../db/account.js"));
 class HomePage extends base_js_1.PageBase {
     constructor() {
         super({
             pageName: 'home'
         });
+        this.canPlay = false;
         console.log("[CLIENT SIDE] A HOME FOI CARREGADA");
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.manageDropdown();
+            yield this.checkPlay();
             this.initUpdater();
             const play = document.getElementById('play');
             play.addEventListener('click', () => {
+                console.log(this.selectedModpack, this.canPlay);
                 if (!this.selectedModpack)
                     return this.notification("Selecione um modpack para jogar.");
+                if (!this.canPlay)
+                    return this.notification("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.");
                 this.startLauncher(this.selectedModpack);
                 play.innerHTML = '<span class="material-icons">play_disabled</span> Instalando...';
                 play.disabled = true;
@@ -42,7 +48,8 @@ class HomePage extends base_js_1.PageBase {
     getInstalledVersions() {
         return __awaiter(this, void 0, void 0, function* () {
             const launcherSettings = yield launcher_js_2.default.config();
-            // if(!launcherSettings) return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.")
+            if (!launcherSettings)
+                return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.");
             let versions = (0, node_fs_1.readdirSync)(`${launcherSettings === null || launcherSettings === void 0 ? void 0 : launcherSettings.path}\\versions`);
             console.log(versions);
         });
@@ -105,11 +112,14 @@ class HomePage extends base_js_1.PageBase {
         div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150');
         div.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`;
         div.addEventListener('click', () => {
-            const fake = document.getElementById('fake-select');
-            fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`;
-            this.selectedModpack = modpack;
+            this.selectModPack(modpack);
         });
         return div;
+    }
+    selectModPack(modpack) {
+        const fake = document.getElementById('fake-select');
+        fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`;
+        this.selectedModpack = modpack;
     }
     manageDropdown() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -124,6 +134,7 @@ class HomePage extends base_js_1.PageBase {
                 console.log(modpack);
                 const optionDiv = this.returnOptionElementCustomModpack(modpack);
                 options.appendChild(optionDiv);
+                this.selectModPack(modpack);
             }
             // console.log(modpacks)
             // for (let version of vanilla) {
@@ -175,6 +186,12 @@ class HomePage extends base_js_1.PageBase {
             const play = document.getElementById('play');
             play.disabled = false;
             play.innerHTML = '<span class="material-icons">play_circle</span> Instalar e Jogar';
+        });
+    }
+    checkPlay() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const accounts = yield account_js_1.default.accounts();
+            this.canPlay = accounts.length !== 0;
         });
     }
     initUpdater() {

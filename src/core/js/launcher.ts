@@ -11,8 +11,8 @@ class Launcher extends Launch {
     async init(gameData: GameData) {
         const accounts = await Account.accounts()
         if (!accounts.length) {
-            alert("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
-            this.emit('close')
+            // alert("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
+            // this.emit('close')
             return
         }
 

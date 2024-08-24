@@ -7,10 +7,13 @@ import { ipcRenderer } from "electron"
 import { PageBase } from "../base.js"
 import { Storage } from "./storage"
 import { readdirSync, readFileSync, existsSync } from "node:fs"
+import account from "../../db/account.js";
 
 
 
 class HomePage extends PageBase {
+    private selectedModpack?: GameData
+    private canPlay: boolean = false;
     constructor() {
         super({
             pageName: 'home'
@@ -20,10 +23,14 @@ class HomePage extends PageBase {
 
     async init() {
         await this.manageDropdown()
+        await this.checkPlay()
         this.initUpdater()
         const play = document.getElementById('play') as HTMLButtonElement
         play.addEventListener('click', () => {
-            this.startLauncher()
+            console.log(this.selectedModpack, this.canPlay)
+            if (!this.selectedModpack) return this.notification("Selecione um modpack para jogar.")
+            if (!this.canPlay) return this.notification("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
+            this.startLauncher(this.selectedModpack)
             play.innerHTML = '<span class="material-icons">play_disabled</span> Instalando...'
             play.disabled = true
         })
@@ -31,7 +38,7 @@ class HomePage extends PageBase {
 
     private async getInstalledVersions() {
         const launcherSettings = await LauncherDB.config()
-        // if(!launcherSettings) return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.")
+        if (!launcherSettings) return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.")
         let versions = readdirSync(`${launcherSettings?.path}\\versions`)
         console.log(versions)
 
@@ -61,9 +68,6 @@ class HomePage extends PageBase {
         return forge
     }
 
-
-
-    // Function to fetch and return the data
     private async fetchGameData(): Promise<GameData[]> {
         const url = 'https://minecraft.robertinho.net/?action=list';
         try {
@@ -79,33 +83,29 @@ class HomePage extends PageBase {
         }
     }
 
-
-
-
-    private returnOptionElement(type: 'forge' | 'fabric' | 'vanilla' | 'quilt', version: string) {
-        const div = document.createElement('div')
-        div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150')
-        div.innerHTML = `<img src="../core/imgs/${type}.png" width="30">${type} ${version}`
-        div.addEventListener('click', () => this.setDropdownItem(div.innerHTML.split('>')[1]))
-        return div
-    }
+    // private returnOptionElement(type: 'forge' | 'fabric' | 'vanilla' | 'quilt', version: string) {
+    //     const div = document.createElement('div')
+    //     div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150')
+    //     div.innerHTML = `<img src="../core/imgs/${type}.png" width="30">${type} ${version}`
+    //     div.addEventListener('click', () => this.setDropdownItem(div.innerHTML.split('>')[1]))
+    //     return div
+    // }
 
     private returnOptionElementCustomModpack(modpack: GameData) {
         const div = document.createElement('div')
         div.classList.add('flex', 'items-center', 'gap-x-3', 'p-2', 'cursor-pointer', 'border-l-0', 'hover:border-l-4', 'border-blue-500', 'duration-150')
-        // div.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${name} ${modpack.loader}`
-        div.addEventListener('click', () => this.setDropdownItem(div.innerHTML.split('>')[1]))
+        div.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`
+        div.addEventListener('click', () => {
+            this.selectModPack(modpack)
+        })
         return div
     }
 
-    private setDropdownItem(item: string) {
+    private selectModPack(modpack: GameData) {
         const fake = document.getElementById('fake-select') as HTMLElement
-        fake.innerHTML = `<img src="../core/imgs/${item.split(' ')[0]}.png" width="30">${item}`
-        const input = document.getElementById('version') as HTMLInputElement
-        input.value = item
+        fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`
+        this.selectedModpack = modpack
     }
-
-
 
     async manageDropdown() {
         // const vanilla = await this.getVanillaVersions()
@@ -114,11 +114,13 @@ class HomePage extends PageBase {
         // const quilt = await this.getQuiltVersions()
         // const installed = await this.getInstalledVersions()
 
-        const options = document.getElementById('options') as HTMLElement
         let modpacks = await this.fetchGameData()
+        const options = document.getElementById('options') as HTMLElement
         for (let modpack of modpacks) {
+            console.log(modpack)
             const optionDiv = this.returnOptionElementCustomModpack(modpack)
             options.appendChild(optionDiv)
+            this.selectModPack(modpack)
         }
 
         // console.log(modpacks)
@@ -143,14 +145,10 @@ class HomePage extends PageBase {
         // }
     }
 
-    startLauncher() {
-        const [type, version] = (document.getElementById('version') as HTMLInputElement).value.split(' ')
+    startLauncher(gameData: GameData) {
         const launcher = new Launcher()
-        launcher.init(version, type)
-
-
+        launcher.init(gameData)
         const barra = document.getElementById('barra') as HTMLElement
-
         launcher.on("progress", (progress: any, size: any, element: any) => {
             const porcentagem = Math.round((progress / size) * 100)
             barra.innerHTML = `Baixando ${element} | ${porcentagem}% | ${(progress / 1000000).toPrecision(2)}/${(size / 1000000).toPrecision(2)} MB`
@@ -182,6 +180,11 @@ class HomePage extends PageBase {
             play.disabled = false
             play.innerHTML = '<span class="material-icons">play_circle</span> Instalar e Jogar'
         })
+    }
+
+    async checkPlay() {
+        const accounts = await account.accounts()
+        this.canPlay = accounts.length !== 0
     }
 
     initUpdater() {

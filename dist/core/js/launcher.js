@@ -25,8 +25,8 @@ class Launcher extends Launch {
         return __awaiter(this, void 0, void 0, function* () {
             const accounts = yield account_js_1.default.accounts();
             if (!accounts.length) {
-                alert("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.");
-                this.emit('close');
+                // alert("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
+                // this.emit('close')
                 return;
             }
             const settings = yield launcher_js_1.default.config();

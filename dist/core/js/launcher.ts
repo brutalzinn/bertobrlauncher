@@ -1,3 +1,4 @@
+import { GameData } from './../../interfaces/launcher';
 const { Mojang, Launch } = require('minecraft-java-core');
 import LauncherSettings from "../../db/launcher.js"
 import Account from "../../db/account.js"
@@ -7,11 +8,11 @@ class Launcher extends Launch {
         super()
         console.log("[CLIENT SIDE] CLASSE LAUNCHER CARREGADA")
     }
-    async init(version: string, type: string) {
+    async init(gameData: GameData) {
         const accounts = await Account.accounts()
         if (!accounts.length) {
-            alert("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
-            this.emit('close')
+            // alert("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
+            // this.emit('close')
             return
         }
 
@@ -24,15 +25,15 @@ class Launcher extends Launch {
             authenticator: auth ? this.convert(auth) : null,
             timeout: 10000,
             path: settings.path,
-            version: version,
+            version: gameData.game_version,
             detached: false,
             downloadFileMultiple: 100,
             loader: {
-                type: type,
+                type: gameData.loader,
                 build: "latest",
-                enable: !(type == 'vanilla')
+                enable: !(gameData.loader == 'vanilla')
             },
-
+            url: gameData.files,
             verify: false,
             ignored: ['loader', 'options.txt'],
             java: {

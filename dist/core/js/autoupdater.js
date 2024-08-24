@@ -27,11 +27,10 @@ class AutoUpdater extends events_1.default {
     }
     checkForUpdates() {
         const version = JSON.parse((0, node_fs_1.readFileSync)(path_1.default.join(__dirname, "..", "..", "..", "package.json"), "utf-8")).version;
-        console.log(version);
-        fetch("https://raw.githubusercontent.com/VOTRON157/BRLauncher/main/package.json", {
+        fetch("https://raw.githubusercontent.com/brutalzinn/bertobrlauncher/main/package.json", {
             headers: {
-                'Cache-Control': 'no-cache', // Instrui o servidor a não usar o cache
-                'Pragma': 'no-cache', // Outra instrução para não usar o cache (para compatibilidade com navegadores mais antigos)    
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
                 'Expires': '0',
             },
             cache: 'no-cache'
@@ -47,7 +46,7 @@ class AutoUpdater extends events_1.default {
     downloadNewVersion() {
         return __awaiter(this, void 0, void 0, function* () {
             this.emit("downloading-zip");
-            const newVersion = "https://github.com/VOTRON157/BRLauncher/archive/refs/heads/main.zip";
+            const newVersion = "https://raw.githubusercontent.com/brutalzinn/bertobrlauncher/archive/refs/heads/main.zip";
             const data = yield fetch(newVersion, {
                 headers: {
                     'Cache-Control': 'no-cache', // Instrui o servidor a não usar o cache
