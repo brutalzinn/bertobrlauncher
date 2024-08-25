@@ -81,7 +81,8 @@ class App {
         const maxmize = document.getElementById("maxmize") as HTMLElement;
         const accounts = document.getElementById('accounts-btn') as HTMLButtonElement
         const close = document.getElementById("close") as HTMLElement;
-
+        const appTitle = document.getElementById("app-title") as HTMLElement;
+        appTitle.innerText = `BRLauncher v${require('../../package.json').version}`
 
         minimize.addEventListener("click", () => ipcRenderer.invoke("minimize"));
         close.addEventListener("click", () => window.close());

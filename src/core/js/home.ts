@@ -27,7 +27,6 @@ class HomePage extends PageBase {
         this.initUpdater()
         const play = document.getElementById('play') as HTMLButtonElement
         play.addEventListener('click', () => {
-            console.log(this.selectedModpack, this.canPlay)
             if (!this.selectedModpack) return this.notification("Selecione um modpack para jogar.")
             if (!this.canPlay) return this.notification("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
             this.startLauncher(this.selectedModpack)
@@ -40,7 +39,6 @@ class HomePage extends PageBase {
         const launcherSettings = await LauncherDB.config()
         if (!launcherSettings) return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.")
         let versions = readdirSync(`${launcherSettings?.path}\\versions`)
-        console.log(versions)
 
     }
 
@@ -72,9 +70,6 @@ class HomePage extends PageBase {
         const url = 'https://minecraft.robertinho.net/?action=list';
         try {
             const response = await fetch(url);
-            if (!response.ok) {
-                console.log(response.body)
-            }
             const data: GameData[] = await response.json();
             return data;
         } catch (error) {

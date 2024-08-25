@@ -90,6 +90,8 @@ class App {
         const maxmize = document.getElementById("maxmize");
         const accounts = document.getElementById('accounts-btn');
         const close = document.getElementById("close");
+        const appTitle = document.getElementById("app-title");
+        appTitle.innerText = `BRLauncher v${require('../../package.json').version}`;
         minimize.addEventListener("click", () => electron_1.ipcRenderer.invoke("minimize"));
         close.addEventListener("click", () => window.close());
         maxmize.addEventListener("click", () => electron_1.ipcRenderer.invoke("maxmize"));

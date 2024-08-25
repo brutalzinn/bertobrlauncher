@@ -34,7 +34,6 @@ class HomePage extends base_js_1.PageBase {
             this.initUpdater();
             const play = document.getElementById('play');
             play.addEventListener('click', () => {
-                console.log(this.selectedModpack, this.canPlay);
                 if (!this.selectedModpack)
                     return this.notification("Selecione um modpack para jogar.");
                 if (!this.canPlay)
@@ -51,7 +50,6 @@ class HomePage extends base_js_1.PageBase {
             if (!launcherSettings)
                 return this.notification("Algo deu errado, tente reiniciar o Launcher com permisões de administrador.");
             let versions = (0, node_fs_1.readdirSync)(`${launcherSettings === null || launcherSettings === void 0 ? void 0 : launcherSettings.path}\\versions`);
-            console.log(versions);
         });
     }
     getNeoForgeVersions() {
@@ -88,9 +86,6 @@ class HomePage extends base_js_1.PageBase {
             const url = 'https://minecraft.robertinho.net/?action=list';
             try {
                 const response = yield fetch(url);
-                if (!response.ok) {
-                    console.log(response.body);
-                }
                 const data = yield response.json();
                 return data;
             }
