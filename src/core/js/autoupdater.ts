@@ -6,104 +6,57 @@ import TypedEmitter from "typed-emitter";
 import decompress from "decompress";
 import { exec } from "node:child_process";
 import path from "path"
+import { app } from 'electron';
+import { autoUpdater } from 'electron-updater';
 
 class AutoUpdater extends (EventEmitter as new () => TypedEmitter<Events>) {
   constructor() {
     super()
     console.log("[CLIENT SIDE] O AUTOUPDATER FOI INICIALIZADO")
-    this.checkForUpdates()
   }
 
   checkForUpdates() {
-    const version = JSON.parse(readFileSync(path.join(__dirname, "..", "..", "..", "package.json"), "utf-8")).version
-    fetch("https://raw.githubusercontent.com/brutalzinn/bertobrlauncher/main/package.json", {
-      headers: {
-        'Cache-Control': 'no-cache', 
-        'Pragma': 'no-cache',       
-        'Expires': '0',
-      },
-      cache: 'no-cache'
-    })
-      .then((res) => res.json())
-      .then(async (json) => {
-        if (semver.lt(version, json.version)) this.emit("update-found")
-        else this.emit("update-notavaliable")
-      });
+    autoUpdater.autoDownload = false;
+
+    autoUpdater.checkForUpdates();
+    autoUpdater.on('checking-for-update', () => {
+      console.log('Checking for update...');
+    });
+
+    autoUpdater.on('update-available', (info) => {
+      console.log('Update available.');
+      this.emit('update-found');
+    });
+
+    autoUpdater.on('update-not-available', (info) => {
+      console.log('Update not available.');
+      this.emit('update-notavaliable');
+    });
+
+    autoUpdater.on('error', (err) => {
+      console.error('Error in auto-updater. ', err);
+      this.emit('error', err);
+    });
+
+    autoUpdater.on('download-progress', (progressObj) => {
+      console.log(`Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}% (${progressObj.transferred}/${progressObj.total})`);
+      this.emit('download-progress', progressObj);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      console.log('Update downloaded');
+      this.emit('download-completed');
+      this.emit('finished');
+      autoUpdater.quitAndInstall();
+    });
   }
 
-  async downloadNewVersion() {
-
-    this.emit("downloading-zip")
-    const newVersion = "https://github.com/brutalzinn/bertobrlauncher/zipball/main";
-    const data = await fetch(newVersion, {
-      headers: {
-        'Cache-Control': 'no-cache', 
-        'Pragma': 'no-cache',   
-        'Expires': '0',
-      },
-      cache: 'no-cache'
-    });
-    const buffer = Buffer.from(await (await data.blob()).arrayBuffer());
-
-    exec(`mkdir "${path.join(__dirname, '..', '..', '..', 'updater')}"`, (error, stdout, stderr) => {
-      if (error) this.emit("error", error)
-      if (stderr) this.emit("error", stderr as any)
-
-      this.emit("unpacking")
-
-      const writeStream = createWriteStream(path.join(__dirname, '..', '..', '..', 'updater', 'brlauncher.zip'))
-      writeStream.write(buffer)
-      writeStream.end()
-      writeStream.on("finish", () => {
-        decompress(path.join(__dirname, '..', '..', '..', 'updater', 'brlauncher.zip'), path.join(__dirname, '..', '..', '..', 'updater', 'brlauncher')) // 💀
-          .then(() => {
-            this.emit("copy")
-            const updaterPath = path.join(__dirname, '..', '..', '..', 'updater', 'brlauncher', 'BRLauncher-main', '*')
-            const root = path.join(__dirname, '..', '..', '..')
-
-            exec(`xcopy "${updaterPath}" "${root}" /E /I /H /Y`, (error, stdout, stderr) => {
-              if (error) this.emit("error", error)
-              if (stderr) this.emit("error", stderr as any)
-              exec(`rd /s /q "${path.join(__dirname, '..', '..', '..', 'updater')}"`,
-                (error, stdout, stderr) => {
-                  if (error) this.emit("error", error)
-                  if (stderr) this.emit("error", stderr as any)
-                  this.emit("finished")
-                })
-            })
-          })
-      })
-    })
+  downloadNewVersion() {
+    this.emit('downloading-zip');
+    autoUpdater.downloadUpdate();
   }
 }
 
-
-/* const testefoda = new AutoUpdater()
-
- testefoda.on("update-notavaliable", () => {
-  console.log("Não tem nada pra baixar :(")
-})
-
-testefoda.on("update-found", async () => {
-  console.log("Update encontrado deseja atualizar?")
-  await testefoda.downloadNewVersion()
-})
-
-testefoda.on("downloading-zip", () => {
-  console.log("Baixando .zip da atualização")
-})
-
-testefoda.on("unpacking", () => {
-  console.log("Descompactando recursos")
-})
-
-testefoda.on("copy", () => {
-  console.log("copiando recursos")
-})
-
-testefoda.on("finished", () => {
-  console.log("Atualização concluida! reiniciando o launcher")
-}) */
 
 export {
   AutoUpdater

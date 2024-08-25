@@ -1,24 +1,35 @@
-# name: Build/release
-# on: push
-# jobs:
-#   release:
-#     runs-on: ${{ matrix.os }}
+name: Build and Publish Electron App
 
-#     strategy:
-#       matrix:
-#         os: [macos-latest, ubuntu-latest, windows-latest]
+on:
+  push:
+    tags:
+      - "v*" # Triggers the workflow on new tags starting with 'v'
 
-#     steps:
-#       - name: Check out Git repository
-#         uses: actions/checkout@v1
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-#       - name: Install Node.js, NPM and Yarn
-#         uses: actions/setup-node@v1
-#         with:
-#           node-version: 10
+    strategy:
+      matrix:
+        os: [windows-latest] # Builds for macOS, Windows, and Linux
 
-#       - name: Build/release Electron app
-#         uses: samuelmeuli/action-electron-builder@v1
-#         with:
-#           github_token: ${{ secrets.github_token }}
-#           release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16" # Use the appropriate Node.js version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Electron app
+        run: npm run build
+
+      - name: Publish to GitHub Releases
+        if: startsWith(matrix.os, 'ubuntu') # Only publish once, from Ubuntu
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release

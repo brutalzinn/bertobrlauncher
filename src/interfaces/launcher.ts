@@ -1,3 +1,5 @@
+import { ProgressInfo } from "electron-updater"
+
 export interface Startlauncher {
     version: string,
     username: string,
@@ -95,4 +97,5 @@ export type Events = {
     "unpacking": () => void
     "copy": () => void
     "finished": () => void;
+    "download-progress": (progress: ProgressInfo) => void;
 };

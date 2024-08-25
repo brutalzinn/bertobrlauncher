@@ -1,16 +1,16 @@
 {
   "name": "brlauncher",
-  "version": "0.0.4",
+  "version": "0.0.2",
   "description": "Um launcher de Minecraft Brasileiro",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx electron-packager . BRLauncher --platform=win32 --arch=x64 --overwrite --out build/ & npx ts-node src/build-installer",
+    "build": "tsc && ts-node src/exclude/pre.ts && npx ts-node src/build",
     "setup": "npx ts-node src/build-installer",
     "build:css:dev": "npx tailwindcss -i ./src/core/css/input.css -o ./src/core/css/style.css --watch",
     "build:css": "npx tailwindcss -i ./src/core/css/input.css -o ./src/core/css/style.css",
     "start": "tsc && ts-node src/exclude/pre.ts && electron dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsc && ts-node src/exclude/pre.ts && electron ."
+    "dev": "tsc && ts-node src/exclude/pre.ts && electron .",
+    "release": "electron-builder --publish always"
   },
   "keywords": [],
   "author": "VOTRON157",
@@ -23,6 +23,7 @@
     "decompress": "^4.2.1",
     "dotenv": "^16.3.1",
     "easy-presence": "^1.2.0-oops1",
+    "electron-updater": "^6.2.1",
     "material-icons": "^1.13.8",
     "minecraft-java-core": "^3.10.1",
     "semver": "^7.5.4",

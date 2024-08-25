@@ -15,10 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.HomePage = void 0;
 const launcher_js_1 = require("./launcher.js");
 const launcher_js_2 = __importDefault(require("../../db/launcher.js"));
-const autoupdater_js_1 = require("./autoupdater.js");
+const electron_1 = require("electron");
 const base_js_1 = require("../base.js");
 const node_fs_1 = require("node:fs");
 const account_js_1 = __importDefault(require("../../db/account.js"));
+const electron_updater_1 = require("electron-updater");
 class HomePage extends base_js_1.PageBase {
     constructor() {
         super({
@@ -190,17 +191,36 @@ class HomePage extends base_js_1.PageBase {
         });
     }
     initUpdater() {
-        const autoUpdater = new autoupdater_js_1.AutoUpdater();
         const updater = document.getElementById("updater");
         const no_button = document.getElementById("nupdate");
         const no_button_x = document.getElementById("close-updater");
         const yes_button = document.getElementById("yupdate");
-        autoUpdater.on("update-found", () => {
+        electron_1.ipcRenderer.on('update-found', () => {
+            console.log('Update found! A new version is available.');
             updater.classList.add('flex');
             updater.classList.remove('hidden');
             console.log('Update encontrado');
         });
-        autoUpdater.on("update-notavaliable", () => console.log('O launcher já está atualizado.'));
+        electron_1.ipcRenderer.on('ownload-completed', () => {
+            console.log('O launcher já está atualizado.');
+            // Inform the user that no updates are available
+        });
+        electron_1.ipcRenderer.on('update-notavailable', () => {
+            console.log('O launcher já está atualizado.');
+            // Inform the user that no updates are available
+        });
+        electron_1.ipcRenderer.on('download-completed', () => {
+            console.log('Download completed. Restarting the application...');
+            // Optionally prompt user to restart the app
+        });
+        electron_1.ipcRenderer.on('update-error', (event, errorMessage) => {
+            console.error(`Update error: ${errorMessage}`);
+            // Show error message to the user
+        });
+        electron_1.ipcRenderer.on('download-progress', (event, progress) => {
+            console.log(`Download progress: ${progress.percent}%`);
+            // Update progress bar or indicator
+        });
         no_button.addEventListener("click", (event) => {
             updater.classList.add('hidden');
             updater.classList.remove('flex');
@@ -213,13 +233,8 @@ class HomePage extends base_js_1.PageBase {
             yes_button.setAttribute('disabled', 'true');
             updater.classList.add('hidden');
             updater.classList.remove('flex');
-            autoUpdater.downloadNewVersion();
-            autoUpdater.on("finished", () => {
-                this.notification("O BRLauncher foi atualizado para a versão mais recente. Reabra o launcher para ver as novidades.");
-            });
-            autoUpdater.on('error', (error) => {
-                console.log(error);
-            });
+            electron_updater_1.autoUpdater.downloadUpdate();
+            electron_1.ipcRenderer.send('update');
         });
     }
 }

@@ -1,0 +1,67 @@
+{
+    "productName": "BRLauncher",
+    "appId": "BRLauncher",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "compression": "maximum",
+    "generateUpdatesFilesForAllChannels": true,
+    "asar": false,
+    "directories": {
+        "output": "build",
+        "buildResources": "publisher"
+    },
+    "files": [
+        "dist/**/*",
+        "package.json",
+        "LICENSE.md"
+    ],
+    "extraResources": [
+        "node_modules/.prisma/**/*",
+        "node_modules/@prisma/client/**/*",
+        "prisma/**/*"
+    ],
+    "publish": {
+        "provider": "github",
+        "owner": "brutalzinn",
+        "repo": "bertobrlauncher"
+    },
+    "win": {
+        "icon": "src/core/imgs/icons/icon.ico",
+        "verifyUpdateCodeSignature": false,
+        "target": {
+            "target": "nsis",
+            "arch": [
+                "x64"
+            ]
+        }
+    },
+    "nsis": {
+        "oneClick": true,
+        "allowToChangeInstallationDirectory": false,
+        "createDesktopShortcut": true,
+        "runAfterFinish": true
+    },
+    "mac": {
+        "icon": "src/core/imgs/icons/icon.ico",
+        "category": "public.app-category.games",
+        "target": [
+            {
+                "target": "dmg",
+                "arch": [
+                    "x64",
+                    "arm64"
+                ]
+            }
+        ]
+    },
+    "linux": {
+        "icon": "src/core/imgs/icons/icon.png",
+        "target": [
+            {
+                "target": "AppImage",
+                "arch": [
+                    "x64"
+                ]
+            }
+        ]
+    }
+}

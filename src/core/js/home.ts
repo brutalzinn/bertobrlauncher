@@ -8,6 +8,7 @@ import { PageBase } from "../base.js"
 import { Storage } from "./storage"
 import { readdirSync, readFileSync, existsSync } from "node:fs"
 import account from "../../db/account.js";
+import { autoUpdater } from 'electron-updater';
 
 
 
@@ -184,20 +185,45 @@ class HomePage extends PageBase {
 
     initUpdater() {
 
-        const autoUpdater = new AutoUpdater()
+
 
         const updater = document.getElementById("updater") as HTMLDivElement
         const no_button = document.getElementById("nupdate") as HTMLButtonElement
         const no_button_x = document.getElementById("close-updater") as HTMLButtonElement
         const yes_button = document.getElementById("yupdate") as HTMLButtonElement
 
-        autoUpdater.on("update-found", () => {
+        ipcRenderer.on('update-found', () => {
+            console.log('Update found! A new version is available.');
             updater.classList.add('flex')
             updater.classList.remove('hidden')
             console.log('Update encontrado')
-        })
+        });
 
-        autoUpdater.on("update-notavaliable", () => console.log('O launcher já está atualizado.'))
+        ipcRenderer.on('ownload-completed', () => {
+            console.log('O launcher já está atualizado.')
+            // Inform the user that no updates are available
+        });
+
+
+        ipcRenderer.on('update-notavailable', () => {
+            console.log('O launcher já está atualizado.')
+            // Inform the user that no updates are available
+        });
+
+        ipcRenderer.on('download-completed', () => {
+            console.log('Download completed. Restarting the application...');
+            // Optionally prompt user to restart the app
+        });
+
+        ipcRenderer.on('update-error', (event, errorMessage) => {
+            console.error(`Update error: ${errorMessage}`);
+            // Show error message to the user
+        });
+
+        ipcRenderer.on('download-progress', (event, progress) => {
+            console.log(`Download progress: ${progress.percent}%`);
+            // Update progress bar or indicator
+        });
 
         no_button.addEventListener("click", (event) => {
             updater.classList.add('hidden')
@@ -211,18 +237,11 @@ class HomePage extends PageBase {
 
         yes_button.addEventListener("click", (event) => {
             yes_button.setAttribute('disabled', 'true')
-
             updater.classList.add('hidden')
             updater.classList.remove('flex')
-            autoUpdater.downloadNewVersion()
+            autoUpdater.downloadUpdate()
+            ipcRenderer.send('update')
 
-            autoUpdater.on("finished", () => {
-                this.notification("O BRLauncher foi atualizado para a versão mais recente. Reabra o launcher para ver as novidades.")
-            })
-
-            autoUpdater.on('error', (error) => {
-                console.log(error)
-            })
         })
     }
 }

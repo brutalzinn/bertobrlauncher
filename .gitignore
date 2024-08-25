@@ -7,3 +7,5 @@ package-lock.json
 /windows_installer
 .env
 /dist
+/release
+/build

@@ -16,10 +16,14 @@ const electron_1 = require("electron");
 const ipcHandlers_js_1 = require("./core/js/ipcHandlers.js");
 const path_1 = require("path");
 const dotenv_1 = __importDefault(require("dotenv"));
+const electron_updater_1 = require("electron-updater");
+// Load environment variables from a .env file into process.env
 dotenv_1.default.config();
 const pages = (0, path_1.join)(__dirname, "pages");
+let strippedPath = __dirname.substring(0, __dirname.length - 8);
 function createWindow() {
     return __awaiter(this, void 0, void 0, function* () {
+        // Create the main browser window
         const win = new electron_1.BrowserWindow({
             minWidth: 1200,
             minHeight: 700,
@@ -33,17 +37,38 @@ function createWindow() {
         });
         win.loadFile((0, path_1.join)(pages, "index.html"));
         win.removeMenu();
-        // win.webContents.openDevTools()
         (0, ipcHandlers_js_1.initIPCHandlers)();
+        // win.webContents.openDevTools();
         try {
             require('electron-reloader')(module);
         }
-        catch (_) { }
+        catch (_) {
+            console.error('Failed to set up electron-reloader');
+        }
+        electron_updater_1.autoUpdater.autoDownload = false;
+        electron_updater_1.autoUpdater.checkForUpdates();
+        electron_updater_1.autoUpdater.on('update-available', () => {
+            win.webContents.send('update-found');
+        });
+        electron_updater_1.autoUpdater.on('update-not-available', () => {
+            win.webContents.send('update-notavailable');
+        });
+        electron_updater_1.autoUpdater.on('update-downloaded', () => {
+            win.webContents.send('download-completed');
+            electron_updater_1.autoUpdater.quitAndInstall();
+        });
+        electron_updater_1.autoUpdater.on('error', (error) => {
+            win.webContents.send('update-error', error.message);
+        });
+        electron_updater_1.autoUpdater.on('download-progress', (progress) => {
+            win.webContents.send('download-progress', progress);
+        });
     });
 }
 electron_1.app.whenReady().then(() => {
     if (process.platform === "win32") {
         electron_1.app.setAppUserModelId("BRLauncher");
+        console.log(`App version: ${electron_1.app.getVersion()}`);
     }
     createWindow();
     electron_1.app.on("activate", () => {
