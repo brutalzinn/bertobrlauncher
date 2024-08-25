@@ -23,10 +23,10 @@ class HomePage extends PageBase {
 
     async init() {
         await this.manageDropdown()
-        await this.checkPlay()
         this.initUpdater()
         const play = document.getElementById('play') as HTMLButtonElement
-        play.addEventListener('click', () => {
+        play.addEventListener('click', async () => {
+            await this.checkPlay()
             if (!this.selectedModpack) return this.notification("Selecione um modpack para jogar.")
             if (!this.canPlay) return this.notification("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
             this.startLauncher(this.selectedModpack)

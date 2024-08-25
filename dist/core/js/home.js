@@ -30,10 +30,10 @@ class HomePage extends base_js_1.PageBase {
     init() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.manageDropdown();
-            yield this.checkPlay();
             this.initUpdater();
             const play = document.getElementById('play');
-            play.addEventListener('click', () => {
+            play.addEventListener('click', () => __awaiter(this, void 0, void 0, function* () {
+                yield this.checkPlay();
                 if (!this.selectedModpack)
                     return this.notification("Selecione um modpack para jogar.");
                 if (!this.canPlay)
@@ -41,7 +41,7 @@ class HomePage extends base_js_1.PageBase {
                 this.startLauncher(this.selectedModpack);
                 play.innerHTML = '<span class="material-icons">play_disabled</span> Instalando...';
                 play.disabled = true;
-            });
+            }));
         });
     }
     getInstalledVersions() {

@@ -72,9 +72,9 @@ export interface ForgeAPI {
 
 export interface GameData {
     name: string;
-    game_version: string;
+    gameVersion: string;
     loader: 'forge' | 'fabric' | 'vanilla' | 'quilt'
-    loader_version: string;
+    loaderVersion: string;
     files: string;
 }
 

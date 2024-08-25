@@ -46,11 +46,11 @@ class AutoUpdater extends events_1.default {
     downloadNewVersion() {
         return __awaiter(this, void 0, void 0, function* () {
             this.emit("downloading-zip");
-            const newVersion = "https://raw.githubusercontent.com/brutalzinn/bertobrlauncher/archive/refs/heads/main.zip";
+            const newVersion = "https://github.com/brutalzinn/bertobrlauncher/zipball/main";
             const data = yield fetch(newVersion, {
                 headers: {
-                    'Cache-Control': 'no-cache', // Instrui o servidor a não usar o cache
-                    'Pragma': 'no-cache', // Outra instrução para não usar o cache (para compatibilidade com navegadores mais antigos)    
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
                     'Expires': '0',
                 },
                 cache: 'no-cache'

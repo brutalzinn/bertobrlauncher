@@ -25,7 +25,7 @@ class Launcher extends Launch {
             authenticator: auth ? this.convert(auth) : null,
             timeout: 10000,
             path: settings.path,
-            version: gameData.game_version,
+            version: gameData.gameVersion,
             detached: false,
             downloadFileMultiple: 100,
             loader: {
