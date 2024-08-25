@@ -1,15 +1,13 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, ipcRenderer } from "electron";
 import { initIPCHandlers } from "./core/js/ipcHandlers.js";
 import { join } from "path";
 import dotenv from "dotenv";
 import { autoUpdater } from 'electron-updater';
-import { AutoUpdater } from "./core/js/autoupdater.js";
 
 // Load environment variables from a .env file into process.env
 dotenv.config();
 
 const pages = join(__dirname, "pages");
-let strippedPath = __dirname.substring(0, __dirname.length - 8);
 
 async function createWindow() {
   // Create the main browser window
@@ -27,34 +25,46 @@ async function createWindow() {
   win.loadFile(join(pages, "index.html"));
   win.removeMenu();
   initIPCHandlers();
+  
+  autoUpdater.autoDownload = false;
+  autoUpdater.checkForUpdates();
+  autoUpdater.on('update-available', () => {
+    win.webContents.send('update-found');
+    console.log('Update found');
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    win.webContents.send('update-notavailable');
+    console.log('Update not available');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    win.webContents.send('download-completed');
+    autoUpdater.quitAndInstall();
+    console.log('Update downloaded completed');
+  });
+
+  autoUpdater.on('error', (error) => {
+    win.webContents.send('update-error', error.message);
+    console.log('Error during update:', error.message);
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    win.webContents.send('download-progress', progress);
+  });
+
+  ipcMain.handle('download-update', () => {
+    autoUpdater.downloadUpdate()
+  });
+
+
   // win.webContents.openDevTools();
   try {
     require('electron-reloader')(module);
   } catch (_) {
     console.error('Failed to set up electron-reloader');
   }
-  autoUpdater.autoDownload = false;
-  autoUpdater.checkForUpdates();
-  autoUpdater.on('update-available', () => {
-    win.webContents.send('update-found');
-  });
 
-  autoUpdater.on('update-not-available', () => {
-    win.webContents.send('update-notavailable');
-  });
-
-  autoUpdater.on('update-downloaded', () => {
-    win.webContents.send('download-completed');
-    autoUpdater.quitAndInstall();
-  });
-
-  autoUpdater.on('error', (error) => {
-    win.webContents.send('update-error', error.message);
-  });
-
-  autoUpdater.on('download-progress', (progress) => {
-    win.webContents.send('download-progress', progress);
-  });
 
 }
 

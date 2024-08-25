@@ -3,12 +3,12 @@ import { Launcher } from "./launcher.js"
 import LauncherDB from "../../db/launcher.js";
 import { FabricAPI, MineAPI, QuiltAPI, GameData } from "../../interfaces/launcher.js"
 import { AutoUpdater } from "./autoupdater.js"
-import { ipcRenderer } from "electron"
+import { ipcRenderer, ipcMain } from "electron"
 import { PageBase } from "../base.js"
 import { Storage } from "./storage"
 import { readdirSync, readFileSync, existsSync } from "node:fs"
 import account from "../../db/account.js";
-import { autoUpdater } from 'electron-updater';
+import { autoUpdater, ProgressInfo } from 'electron-updater';
 
 
 
@@ -191,6 +191,7 @@ class HomePage extends PageBase {
         const no_button = document.getElementById("nupdate") as HTMLButtonElement
         const no_button_x = document.getElementById("close-updater") as HTMLButtonElement
         const yes_button = document.getElementById("yupdate") as HTMLButtonElement
+        const barra = document.getElementById('barra') as HTMLElement
 
         ipcRenderer.on('update-found', () => {
             console.log('Update found! A new version is available.');
@@ -198,12 +199,6 @@ class HomePage extends PageBase {
             updater.classList.remove('hidden')
             console.log('Update encontrado')
         });
-
-        ipcRenderer.on('ownload-completed', () => {
-            console.log('O launcher já está atualizado.')
-            // Inform the user that no updates are available
-        });
-
 
         ipcRenderer.on('update-notavailable', () => {
             console.log('O launcher já está atualizado.')
@@ -220,7 +215,9 @@ class HomePage extends PageBase {
             // Show error message to the user
         });
 
-        ipcRenderer.on('download-progress', (event, progress) => {
+        ipcRenderer.on('download-progress', (event, progress: ProgressInfo) => {
+            barra.innerHTML = `Baixando atualização ${progress.percent}%}`
+            barra.style.width = `${progress.percent}%`
             console.log(`Download progress: ${progress.percent}%`);
             // Update progress bar or indicator
         });
@@ -239,9 +236,7 @@ class HomePage extends PageBase {
             yes_button.setAttribute('disabled', 'true')
             updater.classList.add('hidden')
             updater.classList.remove('flex')
-            autoUpdater.downloadUpdate()
-            ipcRenderer.send('update')
-
+            ipcRenderer.invoke('download-update')
         })
     }
 }

@@ -19,7 +19,6 @@ const electron_1 = require("electron");
 const base_js_1 = require("../base.js");
 const node_fs_1 = require("node:fs");
 const account_js_1 = __importDefault(require("../../db/account.js"));
-const electron_updater_1 = require("electron-updater");
 class HomePage extends base_js_1.PageBase {
     constructor() {
         super({
@@ -195,15 +194,12 @@ class HomePage extends base_js_1.PageBase {
         const no_button = document.getElementById("nupdate");
         const no_button_x = document.getElementById("close-updater");
         const yes_button = document.getElementById("yupdate");
+        const barra = document.getElementById('barra');
         electron_1.ipcRenderer.on('update-found', () => {
             console.log('Update found! A new version is available.');
             updater.classList.add('flex');
             updater.classList.remove('hidden');
             console.log('Update encontrado');
-        });
-        electron_1.ipcRenderer.on('ownload-completed', () => {
-            console.log('O launcher já está atualizado.');
-            // Inform the user that no updates are available
         });
         electron_1.ipcRenderer.on('update-notavailable', () => {
             console.log('O launcher já está atualizado.');
@@ -218,6 +214,8 @@ class HomePage extends base_js_1.PageBase {
             // Show error message to the user
         });
         electron_1.ipcRenderer.on('download-progress', (event, progress) => {
+            barra.innerHTML = `Baixando atualização ${progress.percent}%}`;
+            barra.style.width = `${progress.percent}%`;
             console.log(`Download progress: ${progress.percent}%`);
             // Update progress bar or indicator
         });
@@ -233,8 +231,7 @@ class HomePage extends base_js_1.PageBase {
             yes_button.setAttribute('disabled', 'true');
             updater.classList.add('hidden');
             updater.classList.remove('flex');
-            electron_updater_1.autoUpdater.downloadUpdate();
-            electron_1.ipcRenderer.send('update');
+            electron_1.ipcRenderer.invoke('download-update');
         });
     }
 }
