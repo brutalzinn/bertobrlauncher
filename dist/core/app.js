@@ -24,6 +24,7 @@ class App {
     setup() {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("[CLIENT SIDE] O CLASSE PRINCIPAL DO APP FOI CARREGADA");
+            process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
             yield this.initPages([home_js_1.HomePage]);
             yield this.initPages([accounts_js_1.AccountsPage]);
             yield this.initPages([config_js_1.ConfigPage]);

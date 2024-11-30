@@ -32,7 +32,7 @@ class HomePage extends PageBase {
             if (!this.canPlay) return this.notification("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.")
             this.startLauncher(this.selectedModpack)
             play.innerHTML = '<span class="material-icons">play_disabled</span> Instalando...'
-            play.disabled = true
+            // play.disabled = true
         })
     }
 
@@ -68,7 +68,7 @@ class HomePage extends PageBase {
     }
 
     private async fetchGameData(): Promise<GameData[]> {
-        const url = 'https://minecraft.robertinho.net/?action=list';
+        const url = 'https://mineparty.localto.net/api/modpacks/list';
         try {
             const response = await fetch(url);
             const data: GameData[] = await response.json();
@@ -99,7 +99,7 @@ class HomePage extends PageBase {
 
     private selectModPack(modpack: GameData) {
         const fake = document.getElementById('fake-select') as HTMLElement
-        fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`
+        fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name}`
         this.selectedModpack = modpack
     }
 

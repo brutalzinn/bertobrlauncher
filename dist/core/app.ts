@@ -12,6 +12,7 @@ import path from "path"
 class App {
     async setup() {
         console.log("[CLIENT SIDE] O CLASSE PRINCIPAL DO APP FOI CARREGADA")
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
         await this.initPages([HomePage])
         await this.initPages([AccountsPage])
         await this.initPages([ConfigPage])

@@ -40,7 +40,7 @@ class HomePage extends base_js_1.PageBase {
                     return this.notification("Você não pode jogar sem criar uma conta, vá para o menu 'Contas' para criar uma.");
                 this.startLauncher(this.selectedModpack);
                 play.innerHTML = '<span class="material-icons">play_disabled</span> Instalando...';
-                play.disabled = true;
+                // play.disabled = true
             }));
         });
     }
@@ -83,7 +83,7 @@ class HomePage extends base_js_1.PageBase {
     }
     fetchGameData() {
         return __awaiter(this, void 0, void 0, function* () {
-            const url = 'https://minecraft.robertinho.net/?action=list';
+            const url = 'https://mineparty.localto.net/api/modpacks/list';
             try {
                 const response = yield fetch(url);
                 const data = yield response.json();
@@ -113,7 +113,7 @@ class HomePage extends base_js_1.PageBase {
     }
     selectModPack(modpack) {
         const fake = document.getElementById('fake-select');
-        fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name} ${modpack.loader}`;
+        fake.innerHTML = `<img src="../core/imgs/${modpack.loader}.png" width="30">${modpack.name}`;
         this.selectedModpack = modpack;
     }
     manageDropdown() {
@@ -203,11 +203,10 @@ class HomePage extends base_js_1.PageBase {
         });
         electron_1.ipcRenderer.on('update-notavailable', () => {
             console.log('O launcher já está atualizado.');
-            // Inform the user that no updates are available
         });
         electron_1.ipcRenderer.on('download-completed', () => {
             console.log('Download completed. Restarting the application...');
-            // Optionally prompt user to restart the app
+            barra.innerHTML = '<span class="text-lime-700">Download completo. Reiniciando launcher...</span>';
         });
         electron_1.ipcRenderer.on('update-error', (event, errorMessage) => {
             console.error(`Update error: ${errorMessage}`);
@@ -217,7 +216,6 @@ class HomePage extends base_js_1.PageBase {
             barra.innerHTML = `Baixando atualização ${progress.percent}%}`;
             barra.style.width = `${progress.percent}%`;
             console.log(`Download progress: ${progress.percent}%`);
-            // Update progress bar or indicator
         });
         no_button.addEventListener("click", (event) => {
             updater.classList.add('hidden');

@@ -16,6 +16,7 @@ exports.Launcher = void 0;
 const { Mojang, Launch } = require('minecraft-java-core');
 const launcher_js_1 = __importDefault(require("../../db/launcher.js"));
 const account_js_1 = __importDefault(require("../../db/account.js"));
+const path_1 = __importDefault(require("path"));
 class Launcher extends Launch {
     constructor() {
         super();
@@ -36,13 +37,13 @@ class Launcher extends Launch {
             yield this.Launch({
                 authenticator: auth ? this.convert(auth) : null,
                 timeout: 10000,
-                path: settings.path,
+                path: path_1.default.join(settings.path, "versions", gameData.name),
                 version: gameData.gameVersion,
                 detached: false,
                 downloadFileMultiple: 100,
                 loader: {
                     type: gameData.loader,
-                    build: "latest",
+                    build: gameData.loaderVersion, // "latest",
                     enable: !(gameData.loader == 'vanilla')
                 },
                 url: gameData.files,

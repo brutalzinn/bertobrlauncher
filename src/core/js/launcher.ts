@@ -2,7 +2,7 @@ import { GameData } from './../../interfaces/launcher';
 const { Mojang, Launch } = require('minecraft-java-core');
 import LauncherSettings from "../../db/launcher.js"
 import Account from "../../db/account.js"
-
+import path from "path"
 class Launcher extends Launch {
     constructor() {
         super()
@@ -24,13 +24,13 @@ class Launcher extends Launch {
         await this.Launch({
             authenticator: auth ? this.convert(auth) : null,
             timeout: 10000,
-            path: settings.path,
+            path: path.join(settings.path, "versions", gameData.name),
             version: gameData.gameVersion,
             detached: false,
             downloadFileMultiple: 100,
             loader: {
                 type: gameData.loader,
-                build: "latest",
+                build: gameData.loaderVersion,// "latest",
                 enable: !(gameData.loader == 'vanilla')
             },
             url: gameData.files,
